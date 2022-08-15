@@ -37,7 +37,7 @@ key_bindings = {
 
 class Fly:
     def __init__(self, score_display):
-        self.image = pygame.image.load("small_tennis.png")
+        self.image = pygame.image.load("fly.png")
         self.image = pygame.transform.scale(self.image, (60, 60))
         self.speed = [1, 2]
         self.rect = self.image.get_rect()
@@ -99,6 +99,8 @@ def main():
     score_display.rect.bottom = 370
 
     fly = Fly(score_display)
+    dead_fly_img = pygame.image.load("dead_fly.png")
+    dead_fly_img = pygame.transform.scale(dead_fly_img, (40, 40))
     list_of_words = []
     list_of_words = create_list_of_words(list_of_words)
     word_index = 0
@@ -106,6 +108,8 @@ def main():
     list_of_letters[0].change_text_color((255, 255, 255))
     letters_to_draw = []
     letters_to_drop = []
+
+    dead_flies = []
     clock = pygame.time.Clock()
 
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -121,6 +125,8 @@ def main():
     while game_running:
         fly.update(clock)
         screen.fill(BACKGROUND)
+        for df in dead_flies:
+            screen.blit(df[0], df[1])
         screen.blit(fly.image, fly.rect)
         for ldraw in letters_to_draw:
             screen.blit(ldraw.img, ldraw.rect)
@@ -147,7 +153,7 @@ def main():
                     letter = list_of_letters[draw_index_end]
                     letters_to_draw.append(letter)
                     if len(letters_to_draw) == 1:
-                      letters_to_draw[0].change_text_color((255,255,255))
+                        letters_to_draw[0].change_text_color((255, 255, 255))
                     letter.move_rect(fly.rect.centerx, fly.rect.centery)
                     draw_index_end += 1
 
@@ -162,22 +168,25 @@ def main():
                 if event.type == pygame.KEYDOWN:
                     if event.key == key_bindings[
                             letters_to_draw[cursor_index].text]:
+                              
                         letters_to_draw[cursor_index].update_text(".")
-                        cursor_index += 1
-
-                        if cursor_index >= len(letters_to_draw):
+                         
+                        if cursor_index +1 >= len(letters_to_draw):
                             score += 3
                             score_display.update_text(f"Score: {score}")
                             spawn_timer = 0
-                            #draw_index_start = draw_index_end
+                            dead_fly_rect = dead_fly_img.get_rect()
+                            dead_fly_rect.center = fly.rect.center
+                            dead_flies.append([dead_fly_img, dead_fly_rect])
+
                             fly.reset_to_left_side()
                             cursor_index = 0
                             for letter3 in letters_to_draw:
                                 letters_to_drop.append(letter3)
                             letters_to_draw.clear()
-                            draw_index_end = 0
                         else:
-                            letters_to_draw[cursor_index].change_text_color(
+                          cursor_index += 1
+                          letters_to_draw[cursor_index].change_text_color(
                                 (255, 255, 255))
                     else:  #wrong key hit
                         letters_to_draw[cursor_index].change_text_color(
