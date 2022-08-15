@@ -50,7 +50,7 @@ class Fly:
         self.move(clock)
 
     def move(self, clock):
-        self.bounce_off_walls()
+        #self.bounce_off_walls()
         self.rect.x += self.speed[0]
         self.rect.y += int(self.speed[1] *
                            math.sin(pygame.time.get_ticks() / 500))
@@ -124,6 +124,20 @@ def main():
 
     while game_running:
         fly.update(clock)
+        if fly.rect.centerx > WIDTH:
+          fly = Fly(score_display)
+          cursor_index = 0
+          draw_index_end = 0
+          for letter3 in letters_to_draw:
+              letters_to_drop.append(letter3)
+          letters_to_draw.clear()
+          word_index += 1
+          spawn_timer = 0
+          toggle_timer = -100
+          spawn_running = False
+          score -= 5
+          score_display.update_text(f"Score: {score}")
+          
         screen.fill(BACKGROUND)
         for df in dead_flies:
             screen.blit(df[0], df[1])
@@ -179,7 +193,7 @@ def main():
                           dead_fly_rect.center = fly.rect.center
                           dead_flies.append([dead_fly_img, dead_fly_rect])
 
-                          fly.reset_to_left_side()
+                          fly = Fly(score_display)
                           cursor_index = 0
                           for letter3 in letters_to_draw:
                               letters_to_drop.append(letter3)
@@ -199,8 +213,7 @@ def main():
                         letters_to_draw[
                             cursor_index].img = pygame.transform.scale2x(
                                 letters_to_draw[cursor_index].img)
-                        score -= 1
-                        score_display.update_text(f"Score: {score}")
+                        
 
 
 def create_char_images(list_of_chars, font):
