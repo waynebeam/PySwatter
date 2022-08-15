@@ -3,7 +3,7 @@ import random
 import math
 
 WIDTH = 600
-HEIGHT = 600
+HEIGHT = 400
 BACKGROUND = (0, 0, 0)
 key_bindings = {
   "a": pygame.K_a, 
@@ -40,9 +40,9 @@ class Fly:
     def __init__(self):
       self.image = pygame.image.load("small_tennis.png")
       self.image = pygame.transform.scale(self.image, (60,60))
-      self.speed = [2,3]
+      self.speed = [2,2]
       self.rect = self.image.get_rect()
-      self.rect.top = 10
+      self.rect.top = 30
       self.rect.left = 10
       self.alive = True
 
@@ -57,10 +57,10 @@ class Fly:
       
 
     def bounce_off_walls(self):
-      if self.rect.centerx > WIDTH:
+      if self.rect.right > WIDTH:
         self.speed[0] = 2
-        self.rect.centerx = 0
-        self.rect.top = random.randrange(50, 400)
+        self.rect.left = 0
+        self.rect.top = random.randrange(20, 300)
         
 class Text_Image:
   def __init__(self, text, font):
@@ -91,7 +91,10 @@ def main():
   spawn_timer = 0
   cursor_index = 0
   draw_index = 0
-  
+  score = 0
+  score_display = Text_Image(f"Score: {score}", font)
+  score_display.rect.right = 550
+  score_display.rect.bottom = 370
   while True:
     fly.update(clock)
     screen.fill(BACKGROUND)
@@ -99,6 +102,7 @@ def main():
     for i in range(cursor_index, draw_index):
       letter = list_of_letters[i]
       screen.blit(letter.img, letter.rect)
+    screen.blit(score_display.img, score_display.rect)
     pygame.display.flip()
     clock.tick(60)
     spawn_timer += clock.get_time()
@@ -106,6 +110,7 @@ def main():
       spawn_timer = 0
       list_of_letters[draw_index].move_rect(fly.rect.centerx, fly.rect.centery)
       draw_index += 1
+      
 
       for event in pygame.event.get():
          if event.type == pygame.KEYDOWN:
