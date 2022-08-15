@@ -1,0 +1,9 @@
+Move the game logic from the main function (what was I thinking!?) to the GameLogic class. 
+
+That will allow using functions to update the class variables. 
+
+Things like, for example, the fly starts off screen, and when it enters, then flip a flag that starts the timers. 
+
+Or when a certain number of words are done, or a certain score, or flies, or whatever, then increase the speeds. Can be the fly speed, or the timers shirnking. 
+
+Eventually can break the word list into words lists that are done by word length and can have the words get progressively longer, maybe. Just an option. 

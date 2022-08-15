@@ -250,7 +250,13 @@ def create_list_of_words(word_list):
         'ultrasound', 'sonic', 'phonics', 'toddler', 'navigate', 'paper',
         'towel', 'drive', 'chair', 'scanner', 'scrubs', 'crazy', 'germs',
         'seasons', 'honestly', 'bake', 'oxygen', 'amphibian', 'notorious',
-        'window'
+        'window', 'eventually', 'finally', 'totally', 'indeed', 'cough',
+        'sneeze', 'jump', 'biliary', 'colic', 'mask', 'makes', 'takes', 'tape',
+        'needle', 'interpreter', 'wheels', 'charcoal', 'printere', 'band',
+        'red', 'yellow', 'orange', 'green', 'blue', 'violet', 'magenta',
+        'marigold', 'camper', 'dynasty', 'zebra', 'quick', 'brown', 'lazy',
+        'unevniable', 'hexagon', 'hexagonal', 'frame', 'double', 'float',
+        'list', 'dictionary', 'diatribe'
     ]
     words_to_add = random.choices(possible_words, k=50)
     for word in words_to_add:
