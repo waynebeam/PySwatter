@@ -87,9 +87,11 @@ class Text_Image:
         self.rect.y += self.speed[1]
         self.rect.x += self.speed[0]
 
+
 class Game_Logic:
-  def __init__(self):
-    pass #TODO move logic from main() to here. Then break it into functions
+    def __init__(self):
+        pass  #TODO move logic from main() to here. Then break it into functions
+
 
 def main():
     pygame.init()
@@ -240,7 +242,13 @@ def create_list_of_words(word_list):
         "rustic", "python", "powerful", "worrisome", "nurse", "hospital",
         "glucometer", "charger", "charge", "performed", 'instigate',
         'investigate', 'dry', 'replit', 'stretch', 'xylophone', 'salamander',
-        'engult', 'treatise', 'treasure', 'republican', 'democrat', 'typhoon'
+        'engult', 'treatise', 'treasure', 'republican', 'democrat', 'typhoon',
+        'antagonize', 'software', 'tutorial', 'television', 'movies',
+        'streaming', 'services', 'football', 'foreign', 'industry', 'kidney',
+        'ultrasound', 'sonic', 'phonics', 'toddler', 'navigate', 'paper',
+        'towel', 'drive', 'chair', 'scanner', 'scrubs', 'crazy', 'germs',
+        'seasons', 'honestly', 'bake', 'oxygen', 'amphibian', 'notorious',
+        'window'
     ]
     words_to_add = random.choices(possible_words, k=50)
     for word in words_to_add:
