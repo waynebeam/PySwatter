@@ -37,7 +37,7 @@ key_bindings = {
 
 
 class Fly:
-    def __init__(self):
+    def __init__(self, score_display, score):
       self.image = pygame.image.load("small_tennis.png")
       self.image = pygame.transform.scale(self.image, (60,60))
       self.speed = [2,2]
@@ -45,6 +45,8 @@ class Fly:
       self.rect.top = 30
       self.rect.left = 10
       self.alive = True
+      self.score_display = score_display
+      self.score = score
 
     def update(self, clock):
       self.move(clock)
@@ -53,14 +55,18 @@ class Fly:
       self.bounce_off_walls()
       self.rect.x += self.speed[0]
       self.rect.y += int(self.speed[1]*math.sin(pygame.time.get_ticks()/500))
-    
-      
 
     def bounce_off_walls(self):
       if self.rect.right > WIDTH:
-        self.speed[0] = 2
-        self.rect.left = 0
-        self.rect.top = random.randrange(20, 300)
+        self.reset_to_left_side()
+        self.score -=1 
+        self.score_display.update_text(f"Score: {self.score}")
+
+    def reset_to_left_side(self):
+      self.speed[0] = 2
+      self.rect.left = 0
+      self.rect.top = random.randrange(20, 300)
+        
         
 class Text_Image:
   def __init__(self, text, font):
@@ -73,33 +79,41 @@ class Text_Image:
   def move_rect(self,x,y):
     self.rect.center = (x,y)
 
-  def make_text_white(self):
+  def change_text_color(self, color: (int,int,int)):
+    self.img = self.font.render(self.text, True, color)
+
+  def update_text(self, text):
+    self.text = text
     self.img = self.font.render(self.text, True, (255,255,255))
 
 def main():
   pygame.init()
-  fly = Fly()
   font = pygame.font.SysFont("freesans", 45)
-  trail = create_trail_source()
-  list_of_letters = create_char_images(trail, font)
-  list_of_letters[0].make_text_white()
-  clock = pygame.time.Clock()
-  
-  screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
-  spawn_time = 400
-  spawn_timer = 0
-  cursor_index = 0
-  draw_index = 0
   score = 0
   score_display = Text_Image(f"Score: {score}", font)
   score_display.rect.right = 550
   score_display.rect.bottom = 370
+  
+  fly = Fly(score_display, score)
+  trail = create_trail_source()
+  list_of_letters = create_char_images(trail, font)
+  list_of_letters[0].change_text_color((255,255,255))
+  clock = pygame.time.Clock()
+  
+  screen = pygame.display.set_mode((WIDTH, HEIGHT))
+
+  spawn_time = 700
+  spawn_timer = 0
+  cursor_index = 0
+  draw_index_start = 0
+  draw_index_end = 0
+  
   while True:
     fly.update(clock)
     screen.fill(BACKGROUND)
     screen.blit(fly.image, fly.rect)
-    for i in range(cursor_index, draw_index):
+    for i in range(draw_index_start, draw_index_end):
       letter = list_of_letters[i]
       screen.blit(letter.img, letter.rect)
     screen.blit(score_display.img, score_display.rect)
@@ -108,15 +122,24 @@ def main():
     spawn_timer += clock.get_time()
     if spawn_timer >= spawn_time:
       spawn_timer = 0
-      list_of_letters[draw_index].move_rect(fly.rect.centerx, fly.rect.centery)
-      draw_index += 1
+      list_of_letters[draw_index_end].move_rect(fly.rect.centerx, fly.rect.centery)
+      draw_index_end += 1
       
 
-      for event in pygame.event.get():
-         if event.type == pygame.KEYDOWN:
-           if event.key == key_bindings[list_of_letters[cursor_index].text]:
-             cursor_index += 1
-             list_of_letters[cursor_index].make_text_white()
+    for event in pygame.event.get():
+       if event.type == pygame.KEYDOWN:
+         if event.key == key_bindings[list_of_letters[cursor_index].text]:
+           list_of_letters[cursor_index].update_text(".")
+           cursor_index += 1
+           if cursor_index >= draw_index_end:
+             score += 1
+             score_display.update_text(f"Score: {score}")
+             spawn_timer = 0
+             draw_index_start = draw_index_end
+             fly.reset_to_left_side()
+             
+             
+           list_of_letters[cursor_index].change_text_color((255,255,255))
              
 
   
