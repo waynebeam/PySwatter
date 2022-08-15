@@ -125,23 +125,25 @@ def main():
     while game_running:
         fly.update(clock)
         if fly.rect.centerx > WIDTH:
-          fly = Fly(score_display)
-          cursor_index = 0
-          draw_index_end = 0
-          for letter3 in letters_to_draw:
-              letters_to_drop.append(letter3)
-          letters_to_draw.clear()
-          word_index += 1
-          spawn_timer = 0
-          toggle_timer = -100
-          spawn_running = False
-          score -= 5
-          score_display.update_text(f"Score: {score}")
-          
+            fly = Fly(score_display)
+            cursor_index = 0
+            draw_index_end = 0
+            for lost_letter in letters_to_draw:
+                letters_to_drop.append(lost_letter)
+            letters_to_draw.clear()
+            word_index += 1
+            spawn_timer = 0
+            toggle_timer = -100
+            spawn_running = False
+            score -= 5
+            score_display.update_text(f"Score: {score}")
+            list_of_letters = create_char_images(list_of_words[word_index],
+                                                 font)
+
         screen.fill(BACKGROUND)
         for df in dead_flies:
             screen.blit(df[0], df[1])
-        
+
         for ldraw in letters_to_draw:
             screen.blit(ldraw.img, ldraw.rect)
         for ldrop in letters_to_drop:
@@ -186,34 +188,33 @@ def main():
                         letters_to_draw[cursor_index].update_text(".")
 
                         if cursor_index + 1 >= len(letters_to_draw):
-                          score += 3
-                          score_display.update_text(f"Score: {score}")
-                          spawn_timer = 0
-                          dead_fly_rect = dead_fly_img.get_rect()
-                          dead_fly_rect.center = fly.rect.center
-                          dead_flies.append([dead_fly_img, dead_fly_rect])
+                            score += 3
+                            score_display.update_text(f"Score: {score}")
+                            spawn_timer = 0
+                            dead_fly_rect = dead_fly_img.get_rect()
+                            dead_fly_rect.center = fly.rect.center
+                            dead_flies.append([dead_fly_img, dead_fly_rect])
 
-                          fly = Fly(score_display)
-                          cursor_index = 0
-                          for letter3 in letters_to_draw:
-                              letters_to_drop.append(letter3)
-                          letters_to_draw.clear()
-                          word_index += 1
-                          spawn_timer = 0
-                          toggle_timer = -100
-                          spawn_running = False
-                              
+                            fly = Fly(score_display)
+                            cursor_index = 0
+                            for letter3 in letters_to_draw:
+                                letters_to_drop.append(letter3)
+                            letters_to_draw.clear()
+                            word_index += 1
+                            spawn_timer = 0
+                            toggle_timer = -100
+                            spawn_running = False
+
                         else:
-                          cursor_index += 1
-                          letters_to_draw[cursor_index].change_text_color(
-                              (255, 255, 255))
+                            cursor_index += 1
+                            letters_to_draw[cursor_index].change_text_color(
+                                (255, 255, 255))
                     else:  #wrong key hit
                         letters_to_draw[cursor_index].change_text_color(
                             (255, 0, 0))
                         letters_to_draw[
                             cursor_index].img = pygame.transform.scale2x(
                                 letters_to_draw[cursor_index].img)
-                        
 
 
 def create_char_images(list_of_chars, font):
