@@ -85,7 +85,7 @@ class Text_Image:
 
 def main():
     pygame.init()
-    font = pygame.font.SysFont("freesans", 45)
+    font = pygame.font.SysFont("freesans", 35)
 
     score = 0
     score_display = Text_Image(f"Score: {score}", font)
@@ -146,25 +146,33 @@ def main():
                 spawn_running = True
 
         for event in pygame.event.get():
-            if event.type == pygame.KEYDOWN:
-                if event.key == key_bindings[
-                        letters_to_draw[cursor_index].text]:
-                    letters_to_draw[cursor_index].update_text(".")
-                    cursor_index += 1
-                    
-                    if cursor_index >= len(letters_to_draw):
-                        score += 1
-                        score_display.update_text(f"Score: {score}")
-                        spawn_timer = 0
-                        #draw_index_start = draw_index_end
-                        fly.reset_to_left_side()
-                    else:
+          if cursor_index < len(letters_to_draw):
+              if event.type == pygame.KEYDOWN:
+                  if event.key == key_bindings[
+                          letters_to_draw[cursor_index].text]:
+                      letters_to_draw[cursor_index].update_text(".")
+                      cursor_index += 1
+  
+                      if cursor_index >= len(letters_to_draw):
+                          score += 3
+                          score_display.update_text(f"Score: {score}")
+                          spawn_timer = 0
+                          #draw_index_start = draw_index_end
+                          fly.reset_to_left_side()
+                      else:
+                          letters_to_draw[cursor_index].change_text_color(
+                              (255, 255, 255))
+                  else:  #wrong key hit
                       letters_to_draw[cursor_index].change_text_color(
-                        (255, 255, 255))
+                          (255, 0, 0))
+                      letters_to_draw[
+                          cursor_index].img = pygame.transform.scale2x(
+                              letters_to_draw[cursor_index].img)
+                      score -= 1
+                      score_display.update_text(f"Score: {score}")
 
 
 def create_trail_source():
-    #trail = "thisisasentenceforatraiilofflybitstotypeandtrytokillThisisjustasample"
     trail = [x for x in key_bindings.keys()]
     trail_characters = random.choices(trail, k=100)
     return trail_characters
