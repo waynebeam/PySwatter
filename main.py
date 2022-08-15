@@ -37,7 +37,7 @@ key_bindings = {
 
 
 class Fly:
-    def __init__(self, score_display, score):
+    def __init__(self, score_display):
       self.image = pygame.image.load("small_tennis.png")
       self.image = pygame.transform.scale(self.image, (60,60))
       self.speed = [2,2]
@@ -46,7 +46,6 @@ class Fly:
       self.rect.left = 10
       self.alive = True
       self.score_display = score_display
-      self.score = score
 
     def update(self, clock):
       self.move(clock)
@@ -59,8 +58,7 @@ class Fly:
     def bounce_off_walls(self):
       if self.rect.right > WIDTH:
         self.reset_to_left_side()
-        self.score -=1 
-        self.score_display.update_text(f"Score: {self.score}")
+       
 
     def reset_to_left_side(self):
       self.speed[0] = 2
@@ -95,7 +93,7 @@ def main():
   score_display.rect.right = 550
   score_display.rect.bottom = 370
   
-  fly = Fly(score_display, score)
+  fly = Fly(score_display)
   trail = create_trail_source()
   list_of_letters = create_char_images(trail, font)
   list_of_letters[0].change_text_color((255,255,255))
@@ -135,7 +133,7 @@ def main():
              score += 1
              score_display.update_text(f"Score: {score}")
              spawn_timer = 0
-             draw_index_start = draw_index_end
+             #draw_index_start = draw_index_end
              fly.reset_to_left_side()
              
              
