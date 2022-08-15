@@ -38,7 +38,7 @@ key_bindings = {
 class Fly:
     def __init__(self, score_display):
         self.image = pygame.image.load("fly.png")
-        self.image = pygame.transform.scale(self.image, (60, 60))
+        self.image = pygame.transform.scale(self.image, (100, 100))
         self.speed = [1, 2]
         self.rect = self.image.get_rect()
         self.rect.top = 30
@@ -114,10 +114,10 @@ def main():
 
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
-    spawn_time = 300
+    spawn_time = 250
     spawn_timer = 0
-    toggle_time = 750
-    toggle_timer = -150
+    toggle_time = 500
+    toggle_timer = -100
     spawn_running = False
     cursor_index = 0
     draw_index_end = 0
@@ -127,13 +127,13 @@ def main():
         screen.fill(BACKGROUND)
         for df in dead_flies:
             screen.blit(df[0], df[1])
-        screen.blit(fly.image, fly.rect)
+        
         for ldraw in letters_to_draw:
             screen.blit(ldraw.img, ldraw.rect)
         for ldrop in letters_to_drop:
             ldrop.drop()
             screen.blit(ldrop.img, ldrop.rect)
-
+        screen.blit(fly.image, fly.rect)
         screen.blit(score_display.img, score_display.rect)
         pygame.display.flip()
         clock.tick(60)
@@ -168,26 +168,31 @@ def main():
                 if event.type == pygame.KEYDOWN:
                     if event.key == key_bindings[
                             letters_to_draw[cursor_index].text]:
-                              
-                        letters_to_draw[cursor_index].update_text(".")
-                         
-                        if cursor_index +1 >= len(letters_to_draw):
-                            score += 3
-                            score_display.update_text(f"Score: {score}")
-                            spawn_timer = 0
-                            dead_fly_rect = dead_fly_img.get_rect()
-                            dead_fly_rect.center = fly.rect.center
-                            dead_flies.append([dead_fly_img, dead_fly_rect])
 
-                            fly.reset_to_left_side()
-                            cursor_index = 0
-                            for letter3 in letters_to_draw:
-                                letters_to_drop.append(letter3)
-                            letters_to_draw.clear()
+                        letters_to_draw[cursor_index].update_text(".")
+
+                        if cursor_index + 1 >= len(letters_to_draw):
+                          score += 3
+                          score_display.update_text(f"Score: {score}")
+                          spawn_timer = 0
+                          dead_fly_rect = dead_fly_img.get_rect()
+                          dead_fly_rect.center = fly.rect.center
+                          dead_flies.append([dead_fly_img, dead_fly_rect])
+
+                          fly.reset_to_left_side()
+                          cursor_index = 0
+                          for letter3 in letters_to_draw:
+                              letters_to_drop.append(letter3)
+                          letters_to_draw.clear()
+                          word_index += 1
+                          spawn_timer = 0
+                          toggle_timer = -100
+                          spawn_running = False
+                              
                         else:
                           cursor_index += 1
                           letters_to_draw[cursor_index].change_text_color(
-                                (255, 255, 255))
+                              (255, 255, 255))
                     else:  #wrong key hit
                         letters_to_draw[cursor_index].change_text_color(
                             (255, 0, 0))
@@ -216,7 +221,9 @@ def create_list_of_words(word_list):
         'rowdy', "playful", 'macabre', "blue", "vibrant", "bashful",
         "irritated", "thoughtful", "doubtful", "heroic", "unobtrusive",
         "rustic", "python", "powerful", "worrisome", "nurse", "hospital",
-        "glucometer", "charger", "charge", "performed"
+        "glucometer", "charger", "charge", "performed", 'instigate',
+        'investigate', 'dry', 'replit', 'stretch', 'xylophone', 'salamander',
+        'engult', 'treatise', 'treasure', 'republican', 'democrat', 'typhoon'
     ]
     words_to_add = random.choices(possible_words, k=50)
     for word in words_to_add:
