@@ -2,7 +2,7 @@ import pygame
 import random
 import math
 
-WIDTH = 600
+WIDTH = 800
 HEIGHT = 400
 BACKGROUND = (0, 0, 0)
 key_bindings = {
@@ -71,6 +71,7 @@ class Text_Image:
         self.img = font.render(text, True, (128, 128, 128))
         self.rect = self.img.get_rect()
         self.font = font
+        self.speed = [random.randrange(-3, 3), random.randrange(4, 7)]
 
     def move_rect(self, x, y):
         self.rect.center = (x, y)
@@ -82,9 +83,14 @@ class Text_Image:
         self.text = text
         self.img = self.font.render(self.text, True, (255, 255, 255))
 
+    def drop(self):
+        self.rect.y += self.speed[1]
+        self.rect.x += self.speed[0]
+
 
 def main():
     pygame.init()
+    game_running = True
     font = pygame.font.SysFont("freesans", 35)
 
     score = 0
@@ -96,10 +102,10 @@ def main():
     list_of_words = []
     list_of_words = create_list_of_words(list_of_words)
     word_index = 0
-    trail = create_trail_source()
     list_of_letters = create_char_images(list_of_words[word_index], font)
     list_of_letters[0].change_text_color((255, 255, 255))
     letters_to_draw = []
+    letters_to_drop = []
     clock = pygame.time.Clock()
 
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -112,12 +118,16 @@ def main():
     cursor_index = 0
     draw_index_end = 0
 
-    while True:
+    while game_running:
         fly.update(clock)
         screen.fill(BACKGROUND)
         screen.blit(fly.image, fly.rect)
-        for letter in letters_to_draw:
-            screen.blit(letter.img, letter.rect)
+        for ldraw in letters_to_draw:
+            screen.blit(ldraw.img, ldraw.rect)
+        for ldrop in letters_to_drop:
+            ldrop.drop()
+            screen.blit(ldrop.img, ldrop.rect)
+
         screen.blit(score_display.img, score_display.rect)
         pygame.display.flip()
         clock.tick(60)
@@ -136,6 +146,8 @@ def main():
                     spawn_timer = 0
                     letter = list_of_letters[draw_index_end]
                     letters_to_draw.append(letter)
+                    if len(letters_to_draw) == 1:
+                      letters_to_draw[0].change_text_color((255,255,255))
                     letter.move_rect(fly.rect.centerx, fly.rect.centery)
                     draw_index_end += 1
 
@@ -146,36 +158,35 @@ def main():
                 spawn_running = True
 
         for event in pygame.event.get():
-          if cursor_index < len(letters_to_draw):
-              if event.type == pygame.KEYDOWN:
-                  if event.key == key_bindings[
-                          letters_to_draw[cursor_index].text]:
-                      letters_to_draw[cursor_index].update_text(".")
-                      cursor_index += 1
-  
-                      if cursor_index >= len(letters_to_draw):
-                          score += 3
-                          score_display.update_text(f"Score: {score}")
-                          spawn_timer = 0
-                          #draw_index_start = draw_index_end
-                          fly.reset_to_left_side()
-                      else:
-                          letters_to_draw[cursor_index].change_text_color(
-                              (255, 255, 255))
-                  else:  #wrong key hit
-                      letters_to_draw[cursor_index].change_text_color(
-                          (255, 0, 0))
-                      letters_to_draw[
-                          cursor_index].img = pygame.transform.scale2x(
-                              letters_to_draw[cursor_index].img)
-                      score -= 1
-                      score_display.update_text(f"Score: {score}")
+            if cursor_index < len(letters_to_draw):
+                if event.type == pygame.KEYDOWN:
+                    if event.key == key_bindings[
+                            letters_to_draw[cursor_index].text]:
+                        letters_to_draw[cursor_index].update_text(".")
+                        cursor_index += 1
 
-
-def create_trail_source():
-    trail = [x for x in key_bindings.keys()]
-    trail_characters = random.choices(trail, k=100)
-    return trail_characters
+                        if cursor_index >= len(letters_to_draw):
+                            score += 3
+                            score_display.update_text(f"Score: {score}")
+                            spawn_timer = 0
+                            #draw_index_start = draw_index_end
+                            fly.reset_to_left_side()
+                            cursor_index = 0
+                            for letter3 in letters_to_draw:
+                                letters_to_drop.append(letter3)
+                            letters_to_draw.clear()
+                            draw_index_end = 0
+                        else:
+                            letters_to_draw[cursor_index].change_text_color(
+                                (255, 255, 255))
+                    else:  #wrong key hit
+                        letters_to_draw[cursor_index].change_text_color(
+                            (255, 0, 0))
+                        letters_to_draw[
+                            cursor_index].img = pygame.transform.scale2x(
+                                letters_to_draw[cursor_index].img)
+                        score -= 1
+                        score_display.update_text(f"Score: {score}")
 
 
 def create_char_images(list_of_chars, font):
@@ -192,7 +203,7 @@ def create_list_of_words(word_list):
         "test", "bob", "trial", "just", "need", "some", "words", "tiff",
         "foot", "feelings", "kind", "funny", "fly", "alabaster", "strictly",
         "fanciful", "macabre", "happy", "joyful", "exuberant", "angry",
-        "tired", "sick of this", "silly", "wild", "difficult", "rigorous",
+        "tired", "sick", "this", "silly", "wild", "difficult", "rigorous",
         'rowdy', "playful", 'macabre', "blue", "vibrant", "bashful",
         "irritated", "thoughtful", "doubtful", "heroic", "unobtrusive",
         "rustic", "python", "powerful", "worrisome", "nurse", "hospital",
