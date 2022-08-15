@@ -87,6 +87,9 @@ class Text_Image:
         self.rect.y += self.speed[1]
         self.rect.x += self.speed[0]
 
+class Game_Logic:
+  def __init__(self):
+    pass #TODO move logic from main() to here. Then break it into functions
 
 def main():
     pygame.init()
