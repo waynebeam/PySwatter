@@ -39,6 +39,7 @@ key_bindings = {
 class Fly:
     def __init__(self):
       self.image = pygame.image.load("small_tennis.png")
+      self.image = pygame.transform.scale(self.image, (60,60))
       self.speed = [2,3]
       self.rect = self.image.get_rect()
       self.rect.top = 10
