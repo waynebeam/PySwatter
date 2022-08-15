@@ -101,8 +101,11 @@ def main():
   
   screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
-  spawn_time = 700
+  spawn_time = 250
   spawn_timer = 0
+  toggle_time = 750
+  toggle_timer = -300
+  spawn_running = False
   cursor_index = 0
   draw_index_start = 0
   draw_index_end = 0
@@ -117,11 +120,19 @@ def main():
     screen.blit(score_display.img, score_display.rect)
     pygame.display.flip()
     clock.tick(60)
-    spawn_timer += clock.get_time()
-    if spawn_timer >= spawn_time:
-      spawn_timer = 0
-      list_of_letters[draw_index_end].move_rect(fly.rect.centerx, fly.rect.centery)
-      draw_index_end += 1
+    dt = clock.get_time()
+    
+    toggle_timer += dt
+    if toggle_timer >= toggle_time:
+      toggle_timer = 0
+      spawn_running = not spawn_running
+    
+    if spawn_running:
+      spawn_timer += dt
+      if spawn_timer >= spawn_time:
+        spawn_timer = 0
+        list_of_letters[draw_index_end].move_rect(fly.rect.centerx, fly.rect.centery)
+        draw_index_end += 1
       
 
     for event in pygame.event.get():
@@ -144,7 +155,7 @@ def main():
 def create_trail_source():
   #trail = "thisisasentenceforatraiilofflybitstotypeandtrytokillThisisjustasample"
   trail = [x for x in key_bindings.keys()]
-  trail_characters = random.choices(trail, k=50)
+  trail_characters = random.choices(trail, k=100)
   return trail_characters
 
 def create_char_images(list_of_chars, font):
