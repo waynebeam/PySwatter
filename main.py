@@ -209,6 +209,8 @@ def main():
                             spawn_timer = 0
                             toggle_timer = -100
                             spawn_running = False
+                            list_of_letters = create_char_images(
+                                list_of_words[word_index], font)
 
                         else:
                             cursor_index += 1
