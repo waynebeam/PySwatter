@@ -95,6 +95,7 @@ class Game_Logic:
 
 def main():
     pygame.init()
+    print("loaded")
     game_running = True
     font = pygame.font.SysFont("freesans", 35)
 
@@ -244,7 +245,7 @@ def create_list_of_words(word_list):
         "rustic", "python", "powerful", "worrisome", "nurse", "hospital",
         "glucometer", "charger", "charge", "performed", 'instigate',
         'investigate', 'dry', 'replit', 'stretch', 'xylophone', 'salamander',
-        'engult', 'treatise', 'treasure', 'republican', 'democrat', 'typhoon',
+        'engulf', 'treatise', 'treasure', 'republican', 'democrat', 'typhoon',
         'antagonize', 'software', 'tutorial', 'television', 'movies',
         'streaming', 'services', 'football', 'foreign', 'industry', 'kidney',
         'ultrasound', 'sonic', 'phonics', 'toddler', 'navigate', 'paper',

@@ -7,3 +7,11 @@ Things like, for example, the fly starts off screen, and when it enters, then fl
 Or when a certain number of words are done, or a certain score, or flies, or whatever, then increase the speeds. Can be the fly speed, or the timers shirnking. 
 
 Eventually can break the word list into words lists that are done by word length and can have the words get progressively longer, maybe. Just an option. 
+
+Now that you lose the fly if it goes off screen, add a bump to the left as a penalty for hitting a wrong key.
+
+When the game logic for PySwatter is moved, and we start breaking things down into methods, add one for processing key input. That way we can ignore other keys, like space or shift. It will only respond to keys in the dictionary. It will report which of them is pressed. And then we can assess for right or wrong. But if, say, shift is the key down event, since that’s not in the dictionary we won’t even pay attention to it. We’ll check if ‘key in dict’ first, then report the character, then check if it’s the right one. If i’s not in the dict in the first place then just let it go. 
+
+If speed.x is >= 4 speed.x - -
+If <4 speed.x = 4. 
+So I can give a little nudge and it’ll ease a bit
