@@ -36,56 +36,54 @@ key_bindings = {
 
 
 class Fly:
-    def __init__(self, score_display):
-        self.image = pygame.image.load("fly.png")
-        self.image = pygame.transform.scale(self.image, (100, 100))
-        self.speed = [1, 2]
-        self.rect = self.image.get_rect()
-        self.rect.top = 30
-        self.rect.left = 10
-        self.alive = True
-        self.score_display = score_display
+  def __init__(self, score_display):
+    self.image = pygame.image.load("fly.png")
+    self.image = pygame.transform.scale(self.image, (100, 100))
+    self.speed = [1, 2]
+    self.rect = self.image.get_rect()
+    self.rect.top = 30
+    self.rect.right = 0
+    self.alive = True
+    self.score_display = score_display
+  
+  def update(self, total_time):
+    self.move(total_time)
+  
+  def move(self, total_time):
+    self.rect.x += self.speed[0]
+    self.rect.y += int(self.speed[1] * math.sin(total_time / 500))
 
-    def update(self, total_time):
-        self.move(total_time)
-
-    def move(self, total_time):
-        #self.bounce_off_walls()
-        self.rect.x += self.speed[0]
-        self.rect.y += int(self.speed[1] *
-                           math.sin(total_time / 500))
-
-    def bounce_off_walls(self):
-        if self.rect.right > WIDTH:
-            self.reset_to_left_side()
-
-    def reset_to_left_side(self):
-        self.rect.left = 0
-        self.rect.top = random.randrange(20, 300)
+  def bounce_off_walls(self):
+    if self.rect.right > WIDTH:
+      self.reset_to_left_side()
+  
+  def reset_to_left_side(self):
+    self.rect.left = 0
+    self.rect.top = random.randrange(20, 300)
 
 
 class Text_Image:
-    def __init__(self, text, font):
-        self.text = text
-        self.font = font
-        self.img = font.render(text, True, (128, 128, 128))
-        self.rect = self.img.get_rect()
-        self.font = font
-        self.speed = [random.randrange(-3, 3), random.randrange(4, 7)]
+  def __init__(self, text, font):
+    self.text = text
+    self.font = font
+    self.img = font.render(text, True, (128, 128, 128))
+    self.rect = self.img.get_rect()
+    self.font = font
+    self.speed = [random.randrange(-3, 3), random.randrange(4, 7)]
 
-    def move_rect(self, x, y):
-        self.rect.center = (x, y)
+  def move_rect(self, x, y):
+    self.rect.center = (x, y)
 
-    def change_text_color(self, color: (int, int, int)):
-        self.img = self.font.render(self.text, True, color)
+  def change_text_color(self, color: (int, int, int)):
+    self.img = self.font.render(self.text, True, color)
 
-    def update_text(self, text):
-        self.text = text
-        self.img = self.font.render(self.text, True, (255, 255, 255))
+  def update_text(self, text):
+    self.text = text
+    self.img = self.font.render(self.text, True, (255, 255, 255))
 
-    def drop(self):
-        self.rect.y += self.speed[1]
-        self.rect.x += self.speed[0]
+  def drop(self):
+    self.rect.y += self.speed[1]
+    self.rect.x += self.speed[0]
 
 
 class Game_Logic:
@@ -123,14 +121,15 @@ class Game_Logic:
 
   def update(self,dt, total_time):
     self.fly.update(total_time)
-    if self.flew_offscreen():
-      self.reset_fly()
-      self.update_score(-5)
-    if self.spawn_running:
-      self.run_spawn_timer(dt)
-    else:
-      self.run_toggle_timer(dt)
-    self.handle_keyboard()
+    if self.flew_onscreen():
+      if self.flew_offscreen():
+        self.reset_fly()
+        self.update_score(-5)
+      if self.spawn_running:
+        self.run_spawn_timer(dt)
+      else:
+        self.run_toggle_timer(dt)
+      self.handle_keyboard()
 
   def draw(self,screen):
     for df in self.dead_flies:
@@ -142,6 +141,13 @@ class Game_Logic:
       screen.blit(ldrop.img, ldrop.rect)
     screen.blit(self.fly.image, self.fly.rect)
     screen.blit(self.score_display.img, self.score_display.rect)
+
+  def flew_onscreen(self):
+    if self.fly.rect.left > 0:
+      return True
+    else:
+      return False
+    
   
   def reset_timers(self):
     self.spawn_timer = 0
@@ -202,10 +208,8 @@ class Game_Logic:
       if event.type == pygame.KEYDOWN and self.cursor_index < len(self.letters_to_draw):
         if event.key == key_bindings[self.letters_to_draw[self.cursor_index].text]:
           self.hit_correct_key()        
-        else:  #wrong key hit
-          self.letters_to_draw[self.cursor_index].change_text_color((255, 0, 0))
-          missed_right_letter = self.letters_to_draw[self.cursor_index].img
-          missed_right_letter = pygame.transform.scale2x(missed_right_letter)
+        else:  
+          self.hit_wrong_key()
 
   def hit_correct_key(self):
     self.letters_to_draw[self.cursor_index].update_text(".")
@@ -221,6 +225,11 @@ class Game_Logic:
     else:
       self.cursor_index += 1
       self.letters_to_draw[self.cursor_index].change_text_color((255, 255, 255))
+
+  def hit_wrong_key(self):
+    missed_right_letter = self.letters_to_draw[self.cursor_index]
+    missed_right_letter.change_text_color((255, 0, 0))
+    missed_right_letter.img = pygame.transform.scale2x(missed_right_letter.img)
 
   def add_dead_fly(self):
     dead_fly_rect = self.dead_fly_img.get_rect()
