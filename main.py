@@ -42,7 +42,7 @@ class Fly:
     self.initial_speed_x = 2
     self.speed = [self.initial_speed_x, 2]
     self.rect = self.image.get_rect()
-    self.rect.top = 100
+    self.rect.top = random.randrange(50,250)
     self.rect.right = 0
     self.alive = True
     self.score_display = score_display
@@ -115,7 +115,7 @@ class Game_Logic:
     self.dead_flies = []
     self.spawn_time = 200
     self.spawn_timer = 0
-    self.toggle_time = 300
+    self.toggle_time = 400
     self.toggle_timer = 0
     self.spawn_running = False
     self.cursor_index = 0
