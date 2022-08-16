@@ -46,14 +46,14 @@ class Fly:
         self.alive = True
         self.score_display = score_display
 
-    def update(self, clock):
-        self.move(clock)
+    def update(self, total_time):
+        self.move(total_time)
 
-    def move(self, clock):
+    def move(self, total_time):
         #self.bounce_off_walls()
         self.rect.x += self.speed[0]
         self.rect.y += int(self.speed[1] *
-                           math.sin(pygame.time.get_ticks() / 500))
+                           math.sin(total_time / 500))
 
     def bounce_off_walls(self):
         if self.rect.right > WIDTH:
@@ -89,180 +89,202 @@ class Text_Image:
 
 
 class Game_Logic:
-    def __init__(self):
-        pass  #TODO move logic from main() to here. Then break it into functions
+  def __init__(self, font):
+    self.font = font
+    self.game_running = True    
+    self.score = 0
+    self.score_display = Text_Image(f"Score: {self.score}", font)
+    self.setup_score_display()
+    self.fly = Fly(self.score_display)
+
+    self.dead_fly_img = pygame.image.load("dead_fly.png")
+    self.dead_fly_img = pygame.transform.scale(self.dead_fly_img, (40, 40))
+    self.list_of_words = []
+    self.list_of_words = create_list_of_words(self.list_of_words)
+    self.word_index = 0
+    self.list_of_letters = create_char_images(self.list_of_words[self.word_index], font)
+    self.list_of_letters[0].change_text_color((255, 255, 255))
+    self.letters_to_draw = []
+    self.letters_to_drop = []
+    self.dead_flies = []
+    self.spawn_time = 250
+    self.spawn_timer = 0
+    self.toggle_time = 500
+    self.toggle_timer = -100
+    self.spawn_running = False
+    self.cursor_index = 0
+    self.draw_index_end = 0
 
 
+  def setup_score_display(self):
+    self.score_display.rect.right = 550
+    self.score_display.rect.bottom = 370
+    
+
+  def update(self,dt, total_time):
+    self.fly.update(total_time)
+    if self.flew_offscreen():
+      self.reset_fly()
+      self.update_score(-5)
+    if self.spawn_running:
+      self.run_spawn_timer(dt)
+    else:
+      self.run_toggle_timer(dt)
+    self.handle_keyboard()
+
+  def draw(self,screen):
+    for df in self.dead_flies:
+      screen.blit(df[0], df[1])
+    for ldraw in self.letters_to_draw:
+      screen.blit(ldraw.img, ldraw.rect)
+    for ldrop in self.letters_to_drop:
+      ldrop.drop()
+      screen.blit(ldrop.img, ldrop.rect)
+    screen.blit(self.fly.image, self.fly.rect)
+    screen.blit(self.score_display.img, self.score_display.rect)
+  
+  def reset_timers(self):
+    self.spawn_timer = 0
+    self.toggle_timer = -100
+    self.spawn_running = False  
+
+  def update_score(self, dscore):
+    self.score += dscore
+    self.score_display.update_text(f"Score: {self.score}")
+
+  def flew_offscreen(self):
+    if self.fly.rect.centerx > WIDTH:
+      return True
+    else: 
+      return False
+
+  def reset_fly(self):
+    self.fly = Fly(self.score_display)
+    self.cursor_index = 0
+    self.draw_index_end = 0
+    for lost_letter in self.letters_to_draw:
+        self.letters_to_drop.append(lost_letter)
+    self.letters_to_draw.clear()
+    self.word_index += 1
+    self.reset_timers()
+    self.list_of_letters = create_char_images(self.list_of_words[self.word_index], self.font)
+
+  def run_spawn_timer(self, dt):
+    self.spawn_timer += dt
+    if self.spawn_timer >= self.spawn_time:
+      if self.draw_index_end == len(self.list_of_letters):
+        self.draw_index_end = 0
+        self.spawn_running = False
+        self.advance_to_next_word()
+        
+      else:
+        self.spawn_timer = 0
+        letter = self.list_of_letters[self.draw_index_end]
+        self.letters_to_draw.append(letter)
+        if len(self.letters_to_draw) == 1:
+            self.letters_to_draw[0].change_text_color((255, 255, 255))
+        letter.move_rect(self.fly.rect.centerx, self.fly.rect.centery)
+        self.draw_index_end += 1
+
+  def run_toggle_timer(self, dt):
+    self.toggle_timer += dt
+    if self.toggle_timer >= self.toggle_time:
+      self.toggle_timer = 0
+      self.spawn_running = True
+
+  def advance_to_next_word(self):
+    self.word_index += 1
+    self.list_of_letters = create_char_images(
+    self.list_of_words[self.word_index], self.font)
+
+  def handle_keyboard(self):
+    for event in pygame.event.get():
+      if event.type == pygame.KEYDOWN and self.cursor_index < len(self.letters_to_draw):
+        if event.key == key_bindings[self.letters_to_draw[self.cursor_index].text]:
+          self.hit_correct_key()        
+        else:  #wrong key hit
+          self.letters_to_draw[self.cursor_index].change_text_color((255, 0, 0))
+          missed_right_letter = self.letters_to_draw[self.cursor_index].img
+          missed_right_letter = pygame.transform.scale2x(missed_right_letter)
+
+  def hit_correct_key(self):
+    self.letters_to_draw[self.cursor_index].update_text(".")
+    if self.cursor_index + 1 >= len(self.letters_to_draw):
+      self.update_score(3)
+      self.add_dead_fly()
+      self.reset_fly()
+      self.cursor_index = 0
+      for letter_to_draw in self.letters_to_draw:
+          self.letters_to_drop.append(letter_to_draw)
+      self.letters_to_draw.clear()
+      self.advance_to_next_word()
+    else:
+      self.cursor_index += 1
+      self.letters_to_draw[self.cursor_index].change_text_color((255, 255, 255))
+
+  def add_dead_fly(self):
+    dead_fly_rect = self.dead_fly_img.get_rect()
+    dead_fly_rect.center = self.fly.rect.center
+    self.dead_flies.append([self.dead_fly_img, dead_fly_rect])
+    
 def main():
-    pygame.init()
-    print("loaded")
-    game_running = True
-    font = pygame.font.SysFont("freesans", 35)
+  pygame.init()
+  font = pygame.font.SysFont("freesans", 35)
+  clock = pygame.time.Clock()
+  screen = pygame.display.set_mode((WIDTH, HEIGHT))
+  game_logic = Game_Logic(font)
+  
+  while game_logic.game_running:
+    
+    clock.tick(60)
+    dt = clock.get_time()
+    total_time = pygame.time.get_ticks()
+    
+    game_logic.update(dt, total_time)
 
-    score = 0
-    score_display = Text_Image(f"Score: {score}", font)
-    score_display.rect.right = 550
-    score_display.rect.bottom = 370
-
-    fly = Fly(score_display)
-    dead_fly_img = pygame.image.load("dead_fly.png")
-    dead_fly_img = pygame.transform.scale(dead_fly_img, (40, 40))
-    list_of_words = []
-    list_of_words = create_list_of_words(list_of_words)
-    word_index = 0
-    list_of_letters = create_char_images(list_of_words[word_index], font)
-    list_of_letters[0].change_text_color((255, 255, 255))
-    letters_to_draw = []
-    letters_to_drop = []
-
-    dead_flies = []
-    clock = pygame.time.Clock()
-
-    screen = pygame.display.set_mode((WIDTH, HEIGHT))
-
-    spawn_time = 250
-    spawn_timer = 0
-    toggle_time = 500
-    toggle_timer = -100
-    spawn_running = False
-    cursor_index = 0
-    draw_index_end = 0
-
-    while game_running:
-        fly.update(clock)
-        if fly.rect.centerx > WIDTH:
-            fly = Fly(score_display)
-            cursor_index = 0
-            draw_index_end = 0
-            for lost_letter in letters_to_draw:
-                letters_to_drop.append(lost_letter)
-            letters_to_draw.clear()
-            word_index += 1
-            spawn_timer = 0
-            toggle_timer = -100
-            spawn_running = False
-            score -= 5
-            score_display.update_text(f"Score: {score}")
-            list_of_letters = create_char_images(list_of_words[word_index],
-                                                 font)
-
-        screen.fill(BACKGROUND)
-        for df in dead_flies:
-            screen.blit(df[0], df[1])
-
-        for ldraw in letters_to_draw:
-            screen.blit(ldraw.img, ldraw.rect)
-        for ldrop in letters_to_drop:
-            ldrop.drop()
-            screen.blit(ldrop.img, ldrop.rect)
-        screen.blit(fly.image, fly.rect)
-        screen.blit(score_display.img, score_display.rect)
-        pygame.display.flip()
-        clock.tick(60)
-        dt = clock.get_time()
-
-        if spawn_running:
-            spawn_timer += dt
-            if spawn_timer >= spawn_time:
-                if draw_index_end == len(list_of_letters):
-                    draw_index_end = 0
-                    spawn_running = False
-                    word_index += 1
-                    list_of_letters = create_char_images(
-                        list_of_words[word_index], font)
-                else:
-                    spawn_timer = 0
-                    letter = list_of_letters[draw_index_end]
-                    letters_to_draw.append(letter)
-                    if len(letters_to_draw) == 1:
-                        letters_to_draw[0].change_text_color((255, 255, 255))
-                    letter.move_rect(fly.rect.centerx, fly.rect.centery)
-                    draw_index_end += 1
-
-        else:
-            toggle_timer += dt
-            if toggle_timer >= toggle_time:
-                toggle_timer = 0
-                spawn_running = True
-
-        for event in pygame.event.get():
-            if cursor_index < len(letters_to_draw):
-                if event.type == pygame.KEYDOWN:
-                    if event.key == key_bindings[
-                            letters_to_draw[cursor_index].text]:
-
-                        letters_to_draw[cursor_index].update_text(".")
-
-                        if cursor_index + 1 >= len(letters_to_draw):
-                            score += 3
-                            score_display.update_text(f"Score: {score}")
-                            spawn_timer = 0
-                            dead_fly_rect = dead_fly_img.get_rect()
-                            dead_fly_rect.center = fly.rect.center
-                            dead_flies.append([dead_fly_img, dead_fly_rect])
-
-                            fly = Fly(score_display)
-                            cursor_index = 0
-                            for letter3 in letters_to_draw:
-                                letters_to_drop.append(letter3)
-                            letters_to_draw.clear()
-                            word_index += 1
-                            spawn_timer = 0
-                            toggle_timer = -100
-                            spawn_running = False
-                            list_of_letters = create_char_images(
-                                list_of_words[word_index], font)
-
-                        else:
-                            cursor_index += 1
-                            letters_to_draw[cursor_index].change_text_color(
-                                (255, 255, 255))
-                    else:  #wrong key hit
-                        letters_to_draw[cursor_index].change_text_color(
-                            (255, 0, 0))
-                        letters_to_draw[
-                            cursor_index].img = pygame.transform.scale2x(
-                                letters_to_draw[cursor_index].img)
+    screen.fill(BACKGROUND)
+    game_logic.draw(screen)
+    pygame.display.flip()
 
 
 def create_char_images(list_of_chars, font):
-    char_images = []
-    for char in list_of_chars:
-        char_image = Text_Image(char, font)
-        char_images.append(char_image)
+  char_images = []
+  for char in list_of_chars:
+      char_image = Text_Image(char, font)
+      char_images.append(char_image)
 
-    return char_images
+  return char_images
 
 
 def create_list_of_words(word_list):
-    possible_words = [
-        "test", "bob", "trial", "just", "need", "some", "words", "tiff",
-        "foot", "feelings", "kind", "funny", "fly", "alabaster", "strictly",
-        "fanciful", "macabre", "happy", "joyful", "exuberant", "angry",
-        "tired", "sick", "this", "silly", "wild", "difficult", "rigorous",
-        'rowdy', "playful", 'macabre', "blue", "vibrant", "bashful",
-        "irritated", "thoughtful", "doubtful", "heroic", "unobtrusive",
-        "rustic", "python", "powerful", "worrisome", "nurse", "hospital",
-        "glucometer", "charger", "charge", "performed", 'instigate',
-        'investigate', 'dry', 'replit', 'stretch', 'xylophone', 'salamander',
-        'engulf', 'treatise', 'treasure', 'republican', 'democrat', 'typhoon',
-        'antagonize', 'software', 'tutorial', 'television', 'movies',
-        'streaming', 'services', 'football', 'foreign', 'industry', 'kidney',
-        'ultrasound', 'sonic', 'phonics', 'toddler', 'navigate', 'paper',
-        'towel', 'drive', 'chair', 'scanner', 'scrubs', 'crazy', 'germs',
-        'seasons', 'honestly', 'bake', 'oxygen', 'amphibian', 'notorious',
-        'window', 'eventually', 'finally', 'totally', 'indeed', 'cough',
-        'sneeze', 'jump', 'biliary', 'colic', 'mask', 'makes', 'takes', 'tape',
-        'needle', 'interpreter', 'wheels', 'charcoal', 'printere', 'band',
-        'red', 'yellow', 'orange', 'green', 'blue', 'violet', 'magenta',
-        'marigold', 'camper', 'dynasty', 'zebra', 'quick', 'brown', 'lazy',
-        'unevniable', 'hexagon', 'hexagonal', 'frame', 'double', 'float',
-        'list', 'dictionary', 'diatribe'
-    ]
-    words_to_add = random.choices(possible_words, k=50)
-    for word in words_to_add:
-        word_list.append(word)
-    return word_list
+  possible_words = [
+      "test", "bob", "trial", "just", "need", "some", "words", "tiff",
+      "foot", "feelings", "kind", "funny", "fly", "alabaster", "strictly",
+      "fanciful", "macabre", "happy", "joyful", "exuberant", "angry",
+      "tired", "sick", "this", "silly", "wild", "difficult", "rigorous",
+      'rowdy', "playful", 'macabre', "blue", "vibrant", "bashful",
+      "irritated", "thoughtful", "doubtful", "heroic", "unobtrusive",
+      "rustic", "python", "powerful", "worrisome", "nurse", "hospital",
+      "glucometer", "charger", "charge", "performed", 'instigate',
+      'investigate', 'dry', 'replit', 'stretch', 'xylophone', 'salamander',
+      'engulf', 'treatise', 'treasure', 'republican', 'democrat', 'typhoon',
+      'antagonize', 'software', 'tutorial', 'television', 'movies',
+      'streaming', 'services', 'football', 'foreign', 'industry', 'kidney',
+      'ultrasound', 'sonic', 'phonics', 'toddler', 'navigate', 'paper',
+      'towel', 'drive', 'chair', 'scanner', 'scrubs', 'crazy', 'germs',
+      'seasons', 'honestly', 'bake', 'oxygen', 'amphibian', 'notorious',
+      'window', 'eventually', 'finally', 'totally', 'indeed', 'cough',
+      'sneeze', 'jump', 'biliary', 'colic', 'mask', 'makes', 'takes', 'tape',
+      'needle', 'interpreter', 'wheels', 'charcoal', 'printere', 'band',
+      'red', 'yellow', 'orange', 'green', 'blue', 'violet', 'magenta',
+      'marigold', 'camper', 'dynasty', 'zebra', 'quick', 'brown', 'lazy',
+      'unevniable', 'hexagon', 'hexagonal', 'frame', 'double', 'float',
+      'list', 'dictionary', 'diatribe'
+  ]
+  words_to_add = random.choices(possible_words, k=50)
+  for word in words_to_add:
+      word_list.append(word)
+  return word_list
 
 
 if __name__ == "__main__":
