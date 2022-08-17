@@ -55,11 +55,11 @@ def main():
     pygame.display.flip()
 
 class Fly:
-  def __init__(self, score_display):
+  def __init__(self, score_display, target_speed):
     self.image = pygame.image.load("fly.png")
     self.image = pygame.transform.scale(self.image, (100, 100))
-    self.initial_speed_x = 2
-    self.speed = [self.initial_speed_x, 2]
+    self.target_speed = target_speed
+    self.speed = [target_speed, 2]
     self.rect = self.image.get_rect()
     self.rect.top = random.randrange(50,250)
     self.rect.right = 0
@@ -67,6 +67,7 @@ class Fly:
     self.score_display = score_display
   
   def update(self, total_time):
+    self.check_speed()
     self.move(total_time)
     
   
@@ -74,11 +75,11 @@ class Fly:
     self.rect.x += self.speed[0]
     self.rect.y += int(self.speed[1] * math.sin(total_time / 500))
 
-  def check_speed(self, target_speed):
-    if self.speed[0] >= target_speed:
+  def check_speed(self):
+    if self.speed[0] >= self.target_speed:
       self.speed[0] -= 1
     else:
-      self.speed[0] = target_speed
+      self.speed[0] = self.target_speed
 
   def bounce_off_walls(self):
     if self.rect.right > WIDTH:
@@ -120,7 +121,8 @@ class Game_Logic:
     self.score = 0
     self.score_display = Text_Image(f"Score: {self.score}", font)
     self.setup_score_display()
-    self.fly = Fly(self.score_display)
+    self.base_speed_x = 2
+    self.fly = Fly(self.score_display, self.base_speed_x)
 
     self.dead_fly_img = pygame.image.load("dead_fly.png")
     self.dead_fly_img = pygame.transform.scale(self.dead_fly_img, (40, 40))
@@ -134,12 +136,11 @@ class Game_Logic:
     self.dead_flies = []
     self.spawn_time = 200
     self.spawn_timer = 0
-    self.toggle_time = 400
+    self.toggle_time = 450
     self.toggle_timer = 0
     self.spawn_running = False
     self.cursor_index = 0
     self.draw_index_end = 0
-    self.base_speed_x = self.fly.initial_speed_x
 
 
   def setup_score_display(self):
@@ -148,7 +149,6 @@ class Game_Logic:
     
 
   def update(self,dt, total_time):
-    self.fly.check_speed(self.base_speed_x)
     self.fly.update(total_time)
     if self.flew_onscreen():
       if self.flew_offscreen():
@@ -201,7 +201,7 @@ class Game_Logic:
       return False
 
   def reset_fly(self):
-    self.fly = Fly(self.score_display)
+    self.fly = Fly(self.score_display,self.base_speed_x)
     self.cursor_index = 0
     self.draw_index_end = 0
     for lost_letter in self.letters_to_draw:
