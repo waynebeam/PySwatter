@@ -34,6 +34,25 @@ key_bindings = {
     "z": pygame.K_z
 }
 
+def main():
+  pygame.init()
+  pygame.display.set_caption("PySwatter")
+  font = pygame.font.SysFont("freesans", 35)
+  clock = pygame.time.Clock()
+  screen = pygame.display.set_mode((WIDTH, HEIGHT))
+  game_logic = Game_Logic(font)
+  
+  while game_logic.game_running:
+    
+    clock.tick(60)
+    dt = clock.get_time()
+    total_time = pygame.time.get_ticks()
+    
+    game_logic.update(dt, total_time)
+
+    screen.fill(BACKGROUND)
+    game_logic.draw(screen)
+    pygame.display.flip()
 
 class Fly:
   def __init__(self, score_display):
@@ -253,25 +272,6 @@ class Game_Logic:
     dead_fly_rect = self.dead_fly_img.get_rect()
     dead_fly_rect.center = self.fly.rect.center
     self.dead_flies.append([self.dead_fly_img, dead_fly_rect])
-    
-def main():
-  pygame.init()
-  font = pygame.font.SysFont("freesans", 35)
-  clock = pygame.time.Clock()
-  screen = pygame.display.set_mode((WIDTH, HEIGHT))
-  game_logic = Game_Logic(font)
-  
-  while game_logic.game_running:
-    
-    clock.tick(60)
-    dt = clock.get_time()
-    total_time = pygame.time.get_ticks()
-    
-    game_logic.update(dt, total_time)
-
-    screen.fill(BACKGROUND)
-    game_logic.draw(screen)
-    pygame.display.flip()
 
 
 def create_char_images(list_of_chars, font):
